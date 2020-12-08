@@ -53,11 +53,11 @@
   display: flex;
   justify-content: center;
   overflow: hidden;
-  width: 280px;
+  width: 600px;
 }
 
 .Classify #webcam {
-  height: 280px;
+  height: 500px;
 }
 
 .Classify .button-container {

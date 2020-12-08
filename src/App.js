@@ -31,13 +31,12 @@ class App extends Component {
     return (
         <div className="App">
           <Container>
-            <Navbar collapseOnSelect className="app-nav-bar" variant="dark" expand="lg">
-              <Navbar.Brand href="/">What's Fresh & What's Rotten?</Navbar.Brand>
+            <Navbar bg="dark" collapseOnSelect className="app-nav-bar" variant="dark" expand="lg">
+              <Navbar.Brand href="/">FourTen Fresh & Rotten Classify</Navbar.Brand>
               <Navbar.Toggle aria-controls="basic-navbar-nav" />
               <Navbar.Collapse id="basic-navbar-nav">
                 <Nav>
-                  <Link className="nav-link" to="/">Let's Classify!</Link>
-                  <Link className="nav-link" to="/about">About</Link>
+                  <Link className="nav-link" to="/">과일 분류</Link>
                 </Nav>
               </Navbar.Collapse>
             </Navbar>

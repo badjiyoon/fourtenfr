@@ -12,10 +12,9 @@ import config from '../config';
 import './Classify.css';
 import 'cropperjs/dist/cropper.css';
 
-
 const MODEL_PATH = '/model/model3/transfer_learning/model.json';
 const IMAGE_SIZE = 150;
-const CANVAS_SIZE = 224;
+const CANVAS_SIZE = 450;
 const TOPK_PREDICTIONS = 3;
 
 const INDEXEDDB_DB = 'tensorflowjs';
@@ -187,6 +186,24 @@ export default class Classify extends Component {
     const probabilities = await logits.data();
     const preds = await this.getTopKClasses(probabilities, TOPK_PREDICTIONS);
 
+    Object.values(preds).forEach((elem => {
+      console.log('elem', elem)
+        if('Fresh Banana' === elem.className) {
+          elem.className = '신선한 바나나'
+        } else if('Fresh Apple' === elem.className) {
+          elem.className = '신선한 사과'
+        } else if('Fresh Orange' === elem.className) {
+          elem.className = '신선한 오렌지'
+        } else if('Rotten Banana' === elem.className) {
+          elem.className = '신선하지 않은 바나나'
+        } else if('Rotten Apple' === elem.className) {
+          elem.className = '신선하지 않은 사과'
+        } else if('Rotten Orange' === elem.className) {
+          elem.className = '신선하지 않은 오렌지'
+        } 
+        return elem;
+    }));
+
     this.setState({
       predictions: preds,
       isClassifying: false,
@@ -219,6 +236,24 @@ export default class Classify extends Component {
     const logits = this.model.predict(imageData);
     const probabilities = await logits.data();
     const preds = await this.getTopKClasses(probabilities, TOPK_PREDICTIONS);
+    
+    Object.values(preds).forEach((elem => {
+      console.log('elem', elem)
+        if('Fresh Banana' === elem.className) {
+          elem.className = '신선한 바나나'
+        } else if('Fresh Apple' === elem.className) {
+          elem.className = '신선한 사과'
+        } else if('Fresh Orange' === elem.className) {
+          elem.className = '신선한 오렌지'
+        } else if('Rotten Banana' === elem.className) {
+          elem.className = '신선하지 않은 바나나'
+        } else if('Rotten Apple' === elem.className) {
+          elem.className = '신선하지 않은 사과'
+        } else if('Rotten Orange' === elem.className) {
+          elem.className = '신선하지 않은 오렌지'
+        } 
+        return elem;
+    }));
 
     this.setState({
       predictions: preds,
@@ -306,10 +341,10 @@ export default class Classify extends Component {
       { !this.state.modelLoaded &&
         <Fragment>
           <Spinner animation="border" role="status">
-            <span className="sr-only">Loading...</span>
+            <span className="sr-only">모델 로딩 중...</span>
           </Spinner>
           {' '}<span className="loading-model-text">Loading Model</span>
-          <h6>Please wait patiently, for the first time it will take a little bit longer</h6>
+          <h6>모델을 로딩하는 동안 잠깐의 시간이 필요합니다. 참고 기다려 주세요!</h6>
         </Fragment>
       }
 
@@ -319,9 +354,8 @@ export default class Classify extends Component {
           onClick={this.handlePanelClick}
           className="classify-panel-header"
           aria-controls="photo-selection-pane"
-          aria-expanded={this.state.photoSettingsOpen}
-          >
-          Take or Select a Photo to Classify
+          aria-expanded={this.state.photoSettingsOpen}>
+            분류할 과일이미지나 업로드할 이미지를 선택하세요
             <span className='panel-arrow'>
             { this.state.photoSettingsOpen
               ? <FaChevronDown />
@@ -343,7 +377,7 @@ export default class Classify extends Component {
                         {!this.state.isDownloadingModel &&
                           <Button onClick={this.updateModel}
                                   variant="outline-info">
-                            Update
+                            업데이트
                           </Button>
                         }
                         {this.state.isDownloadingModel &&
@@ -351,7 +385,7 @@ export default class Classify extends Component {
                             <Spinner animation="border" role="status" size="sm">
                               <span className="sr-only">Downloading...</span>
                             </Spinner>
-                            {' '}<strong>Downloading...</strong>
+                            {' '}<strong>다운로드 중...</strong>
                           </div>
                         }
                       </div>
@@ -369,16 +403,16 @@ export default class Classify extends Component {
               }
             <Tabs defaultActiveKey="camera" id="input-options" onSelect={this.handleTabSelect}
                   className="justify-content-center">
-              <Tab eventKey="camera" title="Take Photo">
+              <Tab eventKey="camera" title="웹 카메라">
                 <div id="no-webcam" ref="noWebcam">
                   <span className="camera-icon"><FaCamera /></span>
-                  No camera found. <br />
-                  Please use a device with a camera, or upload an image instead.
+                  카메라를 찾을 수 없습니다. <br />
+                  장치의 카메라를 사용하시거나, 이미지를 업로드하세요
                 </div>
                 <div className="webcam-box-outer">
                   <div className="webcam-box-inner">
                     <video ref="webcam" autoPlay playsInline muted id="webcam"
-                           width="448" height="448">
+                           width="600" height="500">
                     </video>
                   </div>
                 </div>
@@ -388,16 +422,16 @@ export default class Classify extends Component {
                     size="lg"
                     onClick={this.classifyWebcamImage}
                     isLoading={this.state.isClassifying}
-                    text="Let's Classify!"
-                    loadingText="Classifying..."
+                    text="분류"
+                    loadingText="분류 중..."
                   />
                 </div>
               </Tab>
-              <Tab eventKey="localfile" title="Select Image From Local">
+              <Tab eventKey="localfile" title="이미지 업로드">
                 <Form.Group controlId="file">
-                  <Form.Label>Upload your image</Form.Label><br />
+                  <Form.Label>이미지 업로드</Form.Label><br />
                   <Form.Label className="imagelabel">
-                    {this.state.filename ? this.state.filename : 'Browse'}
+                    {this.state.filename ? this.state.filename : '파일 선택'}
                   </Form.Label>
                   <Form.Control
                     onChange={this.handleFileChange}
@@ -424,8 +458,8 @@ export default class Classify extends Component {
                         disabled={!this.state.filename}
                         onClick={this.classifyLocalImage}
                         isLoading={this.state.isClassifying}
-                        text="Let's Classify!"
-                        loadingText="Classifying..."
+                        text="분류"
+                        loadingText="분류 중..."
                       />
                     </div>
                   </Fragment>
@@ -436,24 +470,24 @@ export default class Classify extends Component {
           </Collapse>
           { this.state.predictions.length > 0 &&
             <div className="classification-results">
-              <h3>Predictions</h3>
+              <h3>분류한 과일</h3>
               <canvas ref="canvas" width={CANVAS_SIZE} height={CANVAS_SIZE} />
               <br />
               <ListGroup>
               {this.state.predictions.map((category) => {
                 console.log(category);
-                  if (category.className === 'Fresh Apple' || category.className === 'Fresh Orange' || category.className === 'Fresh Banana') {
+                  if (category.className === '신선한 사과' || category.className === '신선한 오렌지' || category.className === '신선한 바나나') {
                     return (
-                      <div>
-                        <p>This most likely <strong>{category.className}</strong> with {category.probability}% probability!</p>
-                        <p>You can eat it safely!</p>
+                      <div key={category.className}>
+                        <p> 과일이름 : <strong>{category.className}</strong> 확률 : {category.probability}% </p>
+                        <p> <strong>{category.className}</strong> 먹을 수 있습니다.</p>
                       </div>
                     );
                   }
                   return (
-                      <div>
-                        <p>Oh no! This is <strong>{category.className}</strong> with {category.probability}% probability!</p>
-                        <p>You shouldn't eat it!</p>
+                      <div key={category.className}>
+                        <p> 과일이름 : <strong>{category.className}</strong> 확률 : {category.probability}% </p>
+                        <p> <strong>{category.className}</strong> 먹을 수 없습니다.</p>
                       </div>
                     );
               })}

@@ -12,7 +12,8 @@ import config from '../config';
 import './Classify.css';
 import 'cropperjs/dist/cropper.css';
 
-const MODEL_PATH = '/model/model3/transfer_learning/model.json';
+const MODEL_PATH = '/model/model5/transfer_learning/model.json';
+
 const IMAGE_SIZE = 150;
 const CANVAS_SIZE = 450;
 const TOPK_PREDICTIONS = 3;
@@ -33,6 +34,7 @@ export default class Classify extends Component {
     this.webcam = null;
     this.model = null;
     this.modelLastUpdated = null;
+    this.folderData = null;
 
     this.state = {
       modelLoaded: false,
@@ -49,52 +51,52 @@ export default class Classify extends Component {
   }
 
   async componentDidMount() {
-    if (('indexedDB' in window)) {
-      try {
-        this.model = await tf.loadLayersModel('indexeddb://' + INDEXEDDB_KEY);
+    // if (('indexedDB' in window)) {
+    //   try {
+    //     this.model = await tf.loadLayersModel('indexeddb://' + INDEXEDDB_KEY);
 
-        // Safe to assume tensorflowjs database and related object store exists.
-        // Get the date when the model was saved.
-        try {
-          const db = await openDB(INDEXEDDB_DB, 1, );
-          const item = await db.transaction(INDEXEDDB_STORE)
-                               .objectStore(INDEXEDDB_STORE)
-                               .get(INDEXEDDB_KEY);
-          const dateSaved = new Date(item.modelArtifactsInfo.dateSaved);
-          await this.getModelInfo();
-          console.log(this.modelLastUpdated);
-          if (!this.modelLastUpdated  || dateSaved >= new Date(this.modelLastUpdated).getTime()) {
-            console.log('Using saved model');
-          }
-          else {
-            this.setState({
-              modelUpdateAvailable: true,
-              showModelUpdateAlert: true,
-            });
-          }
+    //     // Safe to assume tensorflowjs database and related object store exists.
+    //     // Get the date when the model was saved.
+    //     try {
+    //       const db = await openDB(INDEXEDDB_DB, 1, );
+    //       const item = await db.transaction(INDEXEDDB_STORE)
+    //                            .objectStore(INDEXEDDB_STORE)
+    //                            .get(INDEXEDDB_KEY);
+    //       const dateSaved = new Date(item.modelArtifactsInfo.dateSaved);
+    //       await this.getModelInfo();
+    //       console.log(this.modelLastUpdated);
+    //       if (!this.modelLastUpdated  || dateSaved >= new Date(this.modelLastUpdated).getTime()) {
+    //         console.log('Using saved model');
+    //       }
+    //       else {
+    //         this.setState({
+    //           modelUpdateAvailable: true,
+    //           showModelUpdateAlert: true,
+    //         });
+    //       }
 
-        }
-        catch (error) {
-          console.warn(error);
-          console.warn('Could not retrieve when model was saved.');
-        }
+    //     }
+    //     catch (error) {
+    //       console.warn(error);
+    //       console.warn('Could not retrieve when model was saved.');
+    //     }
 
-      }
-      // If error here, assume that the object store doesn't exist and the model currently isn't
-      // saved in IndexedDB.
-      catch (error) {
-        console.log('Not found in IndexedDB. Loading and saving...');
-        console.log(error);
-        this.model = await tf.loadLayersModel(MODEL_PATH);
-        await this.model.save('indexeddb://' + INDEXEDDB_KEY);
-      }
-    }
+    //   }
+    //   // If error here, assume that the object store doesn't exist and the model currently isn't
+    //   // saved in IndexedDB.
+    //   catch (error) {
+    //     console.log('Not found in IndexedDB. Loading and saving...');
+    //     console.log(error);
+    //     this.model = await tf.loadLayersModel(MODEL_PATH);
+    //     await this.model.save('indexeddb://' + INDEXEDDB_KEY);
+    //   }
+    // }
     // If no IndexedDB, then just download like normal.
-    else {
+    // else {
       console.warn('IndexedDB not supported.');
       this.model = await tf.loadLayersModel(MODEL_PATH);
-    }
-
+    // }
+    await this.initModelList();
     this.setState({ modelLoaded: true });
     this.initWebcam();
 
@@ -115,6 +117,21 @@ export default class Classify extends Component {
     catch (e) {
       // Assume model is not loaded or already disposed.
     }
+  }
+
+  initModelList = async () => {
+    await fetch(`${config.API_ENDPOINT}/model_list`, {
+      method: 'GET',
+    }).then(async (response) => {
+      await response.json().then((data) => {
+        this.folderData = data.folderData;
+        console.log('this.folderData', this.folderData)
+      }).catch((err) => {
+        console.log('Unable to get parse model list.');
+      });
+    }).catch((err) => {
+      console.log('Unable to get model list');
+    })
   }
 
   initWebcam = async () => {
@@ -334,6 +351,23 @@ export default class Classify extends Component {
     }
   }
 
+  handleChangeSelect = async event => {
+    const modelPath = MODEL_PATH;
+    const pathArr = modelPath.split('/');
+    const s = document.querySelector('#modelSelect');
+    pathArr[2] = s.options[s.selectedIndex].value;
+    let repath = '';
+
+    for (let i = 0; i < pathArr.length; i++) {
+      if(i == pathArr.length - 1) {
+        repath = repath + pathArr[i]
+      } else {
+        repath = repath + pathArr[i] + "/";
+      }
+    }
+    this.model = await tf.loadLayersModel(repath);
+  }
+
   render() {
     return (
       <div className="Classify container">
@@ -343,13 +377,20 @@ export default class Classify extends Component {
           <Spinner animation="border" role="status">
             <span className="sr-only">모델 로딩 중...</span>
           </Spinner>
-          {' '}<span className="loading-model-text">Loading Model</span>
+          {' '}<span className="loading-model-text">모델 로딩</span>
           <h6>모델을 로딩하는 동안 잠깐의 시간이 필요합니다. 참고 기다려 주세요!</h6>
         </Fragment>
       }
 
       { this.state.modelLoaded &&
         <Fragment>
+          <select id="modelSelect" onChange={this.handleChangeSelect}>
+            {this.folderData.map((elem) => {
+              return (
+                <option value={ elem }>{ elem }</option>
+              );
+            })}
+          </select>
         <Button
           onClick={this.handlePanelClick}
           className="classify-panel-header"

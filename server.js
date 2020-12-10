@@ -17,6 +17,15 @@ app.get('/api/model_info', (req, res) => {
   });
 });
 
+app.get('/api/model_list', (req, res) => {
+  const data = fs.readdirSync('public/model')
+  const filterData = data.filter(elem => !elem.startsWith('.'))
+
+  return res.status(200).json({
+    folderData: filterData
+  });
+});
+
 app.use(express.static(path.join(__dirname, 'build')));
 
 app.get('/*', function (req, res) {

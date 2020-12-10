@@ -38,6 +38,8 @@ class App extends Component {
                 <Nav>
                   <Link className="nav-link" to="/">과일 분류</Link>
                 </Nav>
+                <Nav>
+                </Nav>
               </Navbar.Collapse>
             </Navbar>
             { this.props.updateAvailable && this.state.showUpdateAlert &&

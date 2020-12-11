@@ -140,7 +140,6 @@ export default class Classify extends Component {
         {resizeWidth: CANVAS_SIZE, resizeHeight: CANVAS_SIZE, facingMode: 'environment'}
       );
       const s = document.querySelector('#modelSelect');
-      console.log('s', s);
       if (s) {
         s.selectedIndex = 4
       }  
@@ -208,7 +207,6 @@ export default class Classify extends Component {
     const preds = await this.getTopKClasses(probabilities, TOPK_PREDICTIONS);
 
     Object.values(preds).forEach((elem => {
-      console.log('elem', elem)
         if('Fresh Banana' === elem.className) {
           elem.className = '신선한 바나나'
         } else if('Fresh Apple' === elem.className) {
@@ -251,8 +249,6 @@ export default class Classify extends Component {
     this.setState({ isClassifying: true });
 
     const imageCapture = await this.webcam.capture();
-    console.log('imageCapture', imageCapture);
-
     const resized = tf.image.resizeBilinear(imageCapture, [IMAGE_SIZE, IMAGE_SIZE]);
     const imageData = await this.processImage(resized);
     const logits = this.model.predict(imageData);
@@ -260,7 +256,6 @@ export default class Classify extends Component {
     const preds = await this.getTopKClasses(probabilities, TOPK_PREDICTIONS);
     
     Object.values(preds).forEach((elem => {
-      console.log('elem', elem)
         if('Fresh Banana' === elem.className) {
           elem.className = '신선한 바나나'
         } else if('Fresh Apple' === elem.className) {

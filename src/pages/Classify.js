@@ -3,7 +3,7 @@ import {
   Alert, Button, Collapse, Container, Form, Spinner, ListGroup, Tabs, Tab
 } from 'react-bootstrap';
 import { FaCamera, FaChevronDown, FaChevronRight } from 'react-icons/fa';
-import { openDB } from 'idb';
+// import { openDB } from 'idb';
 import Cropper  from 'react-cropper';
 import * as tf from '@tensorflow/tfjs';
 import LoadButton from '../components/LoadButton';
@@ -18,9 +18,9 @@ const IMAGE_SIZE = 150;
 const CANVAS_SIZE = 450;
 const TOPK_PREDICTIONS = 3;
 
-const INDEXEDDB_DB = 'tensorflowjs';
-const INDEXEDDB_STORE = 'model_info_store';
-const INDEXEDDB_KEY = 'web-model';
+// const INDEXEDDB_DB = 'tensorflowjs';
+// const INDEXEDDB_STORE = 'model_info_store';
+// const INDEXEDDB_KEY = 'web-model';
 
 /**
  * Class to handle the rendering of the Classify page.
@@ -93,9 +93,9 @@ export default class Classify extends Component {
     // }
     // If no IndexedDB, then just download like normal.
     // else {
-      console.warn('IndexedDB not supported.');
-      this.model = await tf.loadLayersModel(MODEL_PATH);
+      // console.warn('IndexedDB not supported.');
     // }
+    this.model = await tf.loadLayersModel(MODEL_PATH);
     await this.initModelList();
     this.setState({ modelLoaded: true });
     this.initWebcam();
@@ -125,7 +125,6 @@ export default class Classify extends Component {
     }).then(async (response) => {
       await response.json().then((data) => {
         this.folderData = data.folderData;
-        console.log('this.folderData', this.folderData)
       }).catch((err) => {
         console.log('Unable to get parse model list.');
       });
@@ -140,6 +139,11 @@ export default class Classify extends Component {
         this.refs.webcam,
         {resizeWidth: CANVAS_SIZE, resizeHeight: CANVAS_SIZE, facingMode: 'environment'}
       );
+      const s = document.querySelector('#modelSelect');
+      console.log('s', s);
+      if (s) {
+        s.selectedIndex = 4
+      }  
     }
     catch (e) {
       this.refs.noWebcam.style.display = 'block';
@@ -177,10 +181,10 @@ export default class Classify extends Component {
 
   updateModel = async () => {
     // Get the latest model from the server and refresh the one saved in IndexedDB.
-    console.log('Updating the model: ' + INDEXEDDB_KEY);
+    // console.log('Updating the model: ' + INDEXEDDB_KEY);
     this.setState({ isDownloadingModel: true });
     this.model = await tf.loadLayersModel(MODEL_PATH);
-    await this.model.save('indexeddb://' + INDEXEDDB_KEY);
+    // await this.model.save('indexeddb://' + INDEXEDDB_KEY);
     this.setState({
       isDownloadingModel: false,
       modelUpdateAvailable: false,
@@ -247,6 +251,7 @@ export default class Classify extends Component {
     this.setState({ isClassifying: true });
 
     const imageCapture = await this.webcam.capture();
+    console.log('imageCapture', imageCapture);
 
     const resized = tf.image.resizeBilinear(imageCapture, [IMAGE_SIZE, IMAGE_SIZE]);
     const imageData = await this.processImage(resized);
@@ -359,12 +364,13 @@ export default class Classify extends Component {
     let repath = '';
 
     for (let i = 0; i < pathArr.length; i++) {
-      if(i == pathArr.length - 1) {
+      if(i === pathArr.length - 1) {
         repath = repath + pathArr[i]
       } else {
         repath = repath + pathArr[i] + "/";
       }
     }
+
     this.model = await tf.loadLayersModel(repath);
   }
 
@@ -384,13 +390,15 @@ export default class Classify extends Component {
 
       { this.state.modelLoaded &&
         <Fragment>
+        { this.folderData &&
           <select id="modelSelect" onChange={this.handleChangeSelect}>
             {this.folderData.map((elem) => {
               return (
-                <option value={ elem }>{ elem }</option>
+                <option value={ elem } key={ elem }>{ elem }</option>
               );
             })}
           </select>
+        }
         <Button
           onClick={this.handlePanelClick}
           className="classify-panel-header"
@@ -516,7 +524,6 @@ export default class Classify extends Component {
               <br />
               <ListGroup>
               {this.state.predictions.map((category) => {
-                console.log(category);
                   if (category.className === '신선한 사과' || category.className === '신선한 오렌지' || category.className === '신선한 바나나') {
                     return (
                       <div key={category.className}>

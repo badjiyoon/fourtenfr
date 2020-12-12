@@ -12,6 +12,8 @@ NodeExpress : server.js
 
 해당 프로젝트는 windows x64 기준으로 모듈이 설치되어 있습니다.
 
+DataSet : https://www.kaggle.com/sriramr/fruits-fresh-and-rotten-for-classification
+
 사용방법 : 
 1. NodeJS 설치
 URL : https://nodejs.org/ko/download/
